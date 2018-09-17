@@ -5,6 +5,9 @@ import dataAnalysis
 import logStatement
 import sshConnection
 
+#####################
+#### RECOMMENDER ####
+#####################
 class Recommender:
 
 	# Class Attribute
@@ -43,6 +46,15 @@ class Recommender:
 	def setHost(self, newHostName):
 		self.hostname = newHostName
 
+	# Return the current date with time
+	def getCurrentDateTime(self):
+		return datetime.datetime.now()
+
+##################
+#### ANALYSIS ####
+##################
+class Analysis(Recommender):
+
 	# Connect into Georgia Tech PACE Login
 	def sshClientConnect(self):
 		ssh = paramiko.SSHClient()
@@ -53,10 +65,10 @@ class Recommender:
 		print("executing qstat ...")
 		print("----------------------------")
 
-	# Return the current date with time
-	def getCurrentDateTime(self):
-		return datetime.datetime.now()
 
+################
+#### DRIVER ####
+################
 if __name__ == '__main__':
 	username = input("Please enter your GT username: ")
 	password = input("Please enter your password: ")
