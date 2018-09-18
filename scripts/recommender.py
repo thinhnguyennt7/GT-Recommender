@@ -2,6 +2,8 @@ import datetime
 import paramiko
 import time
 import sys
+import getpass
+
 
 #####################
 #### RECOMMENDER ####
@@ -55,39 +57,63 @@ class Recommender:
 class Analysis(Recommender):
 
 	queues_Data = {}
-	recommended_queue = ''
+	recommended_queue = None
 
 	# Connect into Georgia Tech PACE Login
 	def sshClientConnect(self):
-		ssh = paramiko.SSHClient()
-		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		ssh.connect(self.hostname, username=self.username, password=self.password)
-		print("----------------------------")
-		print("gathering queue statistic")
-		print("executing qstat ...")
-		print("----------------------------")
+		try:
+			ssh = paramiko.SSHClient()
+			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+			ssh.connect(self.hostname, username=self.username, password=self.password)
 
-	# Generate logs (errors, data, output) to txt file
-	def logsGenerator(self, option):
-		# In case of error (ssh, execute command line)
-			# Write to the txt file
-			# exit the code exit(1)
+			print("----------------------------")
+			print("gathering queue statistic")
+			print("executing qstat ...")
+			print("----------------------------")
 
-		# In case no error, able to access data
-			# Save the result to the text file include date and time
-		return
+			self.recommendedQueue(self.queues_Data, ssh)
+
+		except paramiko.AuthenticationException:
+			print ("Wrong credentials.")
+			exit(1)
 
 	# Algorithmns to analyze data and compute the best to the worse queue (in order)
-	def recommendedQueue(self, queues_Data):
-		# TODO
-		return
+	def recommendedQueue(self, queues_Data, ssh):
 
-	# Return the best queue to recommend user to run
-	def getRecommendedQueue(self):
+		# Generate a new file
+		newFile = open(str(self.getCurrentDateTime()), 'w')
+		noteMessage = "Today is: " +  str(self.getCurrentDateTime()) + '\n'
+		currentRequester = 'Current requester ID: ' + self.getUserName()
+		newFile.write(noteMessage)
+		newFile.write(currentRequester)
+
+		ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('qstat -q') # View all the list
+
+		# Algorithmns
+		for line in iter(ssh_stdout.readline, ""):
+			spl = line.split()
+			if len(spl) > 1 and (spl[0]== 'joe' or spl[0] == 'joeforce'):
+				print (spl[0] + " is having " + spl[6] + " watting")
+				queues_Data[spl[0]] = int(spl[6])
+			newFile.write(line)
+
+		for queue in queues_Data:
+			if self.recommended_queue is None:
+				self.recommended_queue = queue
+			else:
+				if queues_Data[self.recommended_queue] > queues_Data[queue]:
+					self.recommended_queue = queue
+		self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']'
+
 		print("----------------------------")
-		# Get the best queue from queue
-		# recommended_queue = queues_Data[0]
-		return recommended_queue if recommended_queue != '' else 'Please run recommendedQueue function to receive the best queue.'
+		print (self.recommended_queue)
+		newFile.write(self.recommended_queue)
+
+		# Close file
+		newFile.close()
+
+	# Generate logs (errors, data, output) to txt file
+	# def logsGenerator(self, option, ssh_stdout):
 
 	# Send the txt file (raw data) including recommended result to user's request
 	def sendResultToUser(self):
@@ -104,8 +130,10 @@ if __name__ == '__main__':
 	print ("Welcome To Georgia Tech Recommender System...")
 	time.sleep(1) # Time out for 1 sec
 	username = input("Please enter your GT username: ")
-	password = input("Please enter your GT password: ")
+	password = getpass.getpass("Please enter your GT password: ")
 	test = Analysis(username, password)
+	print (test.getSSHLink())
+	test.sshClientConnect()
 
 
 
