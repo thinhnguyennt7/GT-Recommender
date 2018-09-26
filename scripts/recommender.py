@@ -74,6 +74,7 @@ class Analysis(Recommender):
 			self.recommendedQueue(self.queues_Data, ssh)
 
 		except paramiko.AuthenticationException:
+			# self.fileGenerator('error')
 			print ("Wrong credentials.")
 			exit(1)
 
@@ -81,11 +82,22 @@ class Analysis(Recommender):
 	def recommendedQueue(self, queues_Data, ssh):
 
 		# Generate a new file
-		newFile = open(str(self.getCurrentDateTime()), 'w')
-		noteMessage = "Today is: " +  str(self.getCurrentDateTime()) + '\n'
-		currentRequester = 'Current requester ID: ' + self.getUserName()
-		newFile.write(noteMessage)
-		newFile.write(currentRequester)
+		# newFile = open(str(self.getCurrentDateTime()), 'w')
+		# noteMessage = "Today is: " +  str(self.getCurrentDateTime()) + '\n'
+		# currentRequester = 'Current requester ID: ' + self.getUserName()
+		# newFile.write(noteMessage)
+		# newFile.write(currentRequester)
+		# Generate logs (errors, rawData) to txt file
+		def fileGenerator(self, option):
+			newFile = open(str(self.getCurrentDateTime()), 'w')
+			if (option == 'rawData'):
+				noteMessage = "Today is: " +  str(self.getCurrentDateTime()) + '\n'
+				currentRequester = 'Current requester ID: ' + self.getUserName()
+				newFile.write(noteMessage)
+				newFile.write(currentRequester)
+			elif (option == 'error'):
+				newFile.write('Wrong credentials... Please double check your username or password')
+		# self.fileGenerator('rawData')
 
 		ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('qstat -q') # View all the list
 
@@ -112,9 +124,6 @@ class Analysis(Recommender):
 		# Close file
 		newFile.close()
 
-	# Generate logs (errors, data, output) to txt file
-	# def logsGenerator(self, option, ssh_stdout):
-
 	# Send the txt file (raw data) including recommended result to user's request
 	def sendResultToUser(self):
 		currentUserEmail = self.username + '@gatech.edu'
@@ -131,9 +140,10 @@ if __name__ == '__main__':
 	time.sleep(1) # Time out for 1 sec
 	username = input("Please enter your GT username: ")
 	password = getpass.getpass("Please enter your GT password: ")
-	test = Analysis(username, password)
-	print (test.getSSHLink())
-	test.sshClientConnect()
+
+	# Instanciate
+	Recommender = Analysis(username, password)
+	Recommender.sshClientConnect()
 
 
 
