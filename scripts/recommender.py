@@ -55,6 +55,7 @@ class Recommender:
 ##################
 class Analysis(Recommender):
 
+	# Instance Varibles
 	queues_Data = {}
 	recommended_queue = None
 
