@@ -6,7 +6,7 @@ This project will run on PACE (an virtual machine) to determine and detect which
 Using `python3` to run the `recommender.py`
 ```bash
 # Get the source code from github
-git clone https://github.com/thinhnguyennt7/Recommender_VIP.git
+git clone https://github.com/thinhnguyennt7/GT-Recommender.git
 
 # Change the directory
 cd Recommender_VIP
