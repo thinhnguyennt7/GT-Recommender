@@ -1,0 +1,12 @@
+Today is: 2018-11-07 00:33:24.151804
+Current requester ID: tnguyen452
+
+=== joeforce Queue Summary: ====
+	Last Update                            : 11/07/2018 00:30:03
+	Number of Nodes (Accepting Jobs/Total) : 84/164 (51.22%)
+	Number of Cores (Used/Total)           : 3890/4428 (87.85%)
+	Amount of Memory (Used/Total) (MB)     : 6526483/17331446 (37.66%)
+=================================================================================
+  Hostname       tasks/np Cpu%  loadav%  used/totmem(MB)   Mem%   Accepting Jobs? 
+=================================================================================
+iw-c39-31-r       17/24   70.8   133.4      4650/131131     3.5    Yes (free)             
