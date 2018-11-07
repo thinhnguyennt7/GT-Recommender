@@ -63,6 +63,7 @@ class Analysis(rC.Recommender):
 					if queues_Data[self.recommended_queue] > queues_Data[queue]:
 						self.recommended_queue = queue
 		arrData = dA.taskSplitRecommender(self.recommended_queue, ssh)
+		dA.taskNpsByCore("joeforce", ssh)
 
 		# Print result
 		if arrData[0] == '':
@@ -76,6 +77,9 @@ class Analysis(rC.Recommender):
 		# Write file
 		newFile.write(self.recommended_queue)
 		newFile.close()
+
+	# def queueSummaryDataRequire(self, recommended_queue):
+
 
 ################
 #### DRIVER ####

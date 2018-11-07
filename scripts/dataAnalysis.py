@@ -24,10 +24,13 @@ def taskSplitRecommender(recommenderQueue, ssh):
     filePath = 'recommendQueue_summary_logs/' + str(getCurrentDateTime())
     newFile = open(filePath, 'w')
     newFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
+
+    # Get out the one has the least CPU and core number
     for line in iter(ssh_stdout.readline, ""):
         newFile.write(line)
         dataNode = line.split()
         if len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
+            # Calculate the one has the least cpu in use
             if float(dataNode[2]) < float(maxData):
                 maxData = float(dataNode[2])
                 hostname = dataNode[0]
@@ -37,6 +40,27 @@ def taskSplitRecommender(recommenderQueue, ssh):
     arrData.append(str(maxData))
     newFile.close()
     return arrData
+
+# Get out the list of queue summary
+def taskNpsByCore(recommenderQueue, ssh):
+    summaryPath = 'hostName_Core_Requested_logs/' + str(getCurrentDateTime()) + '\n'
+    summaryFile = open(summaryPath, 'w')
+    summaryFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
+    baseCounter = 2
+
+    # Generate the summary logs file base on best recommender queue and base core number
+    while baseCounter <= 64:
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
+        summaryFile.write("" + recommenderQueue + " Queue summary:" + "\n")
+        summaryFile.write("NUMBER OF TASK/NP REQUESTED: " + '[' + str(baseCounter) + ']' + '\n')
+        for line in iter(ssh_stdout.readline, ""):
+            lineData = line.split()
+            if len(lineData) >= 8 and lineData[6] != 'No' and lineData[2] not in ['Nodes', 'Memory', 'Cpu%']:
+                if numberOfCoreLeft(lineData[1]) >= baseCounter:
+                    summaryFile.write(line)
+        baseCounter *= 2
+        summaryFile.write("\n")
+    summaryFile.close()
 
 # Return the current date with time
 def getCurrentDateTime():
@@ -57,3 +81,8 @@ def collectWallTimeQueue(ssh, sampleQueues):
                 walltime[queue_Node[0]] = queue_Node[1]
     newFile.close()
     return walltime
+
+# Helper method to return the number of core cpu has left in the hostname
+def numberOfCoreLeft(taskNp):
+    left, right = taskNp.split('/')
+    return int(right) - int(left)
