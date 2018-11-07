@@ -5,5 +5,4 @@ This project will run on PACE (an virtual machine) to determinde and detect whic
 # Installation and Run
 Using python3 to run the recommender.py
 1) pip install requirements.txt
-2) cd scripts
-3) python3 recommender.py
+2) python3 recommender.py
