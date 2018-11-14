@@ -46,12 +46,12 @@ def taskNpsByCore(recommenderQueue, ssh):
     summaryPath = 'hostName_Core_Requested_logs/' + str(getCurrentDateTime()) + '\n'
     summaryFile = open(summaryPath, 'w')
     summaryFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
+    summaryFile.write("" + recommenderQueue + " Queue summary:" + "\n")
     baseCounter = 2
 
     # Generate the summary logs file base on best recommender queue and base core number
     while baseCounter <= 64:
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
-        summaryFile.write("" + recommenderQueue + " Queue summary:" + "\n")
         summaryFile.write("NUMBER OF TASK/NP REQUESTED: " + '[' + str(baseCounter) + ']' + '\n')
         for line in iter(ssh_stdout.readline, ""):
             lineData = line.split()
