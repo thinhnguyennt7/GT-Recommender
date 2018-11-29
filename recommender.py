@@ -64,6 +64,12 @@ class Analysis(rC.Recommender):
 						self.recommended_queue = queue
 		arrData = dA.taskSplitRecommender(self.recommended_queue, ssh)
 
+		# For the purpose of testing
+		dA.taskNpsByCore("joeforce", ssh)
+
+		# Real code implemented (DO NOT DELETE)
+		# dA.taskNpsByCore(self.recommended_queue, ssh)
+
 		# Print result
 		if arrData[0] == '':
 			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'This queue does not contain nay Core or Hostname.'
@@ -76,6 +82,9 @@ class Analysis(rC.Recommender):
 		# Write file
 		newFile.write(self.recommended_queue)
 		newFile.close()
+
+	# def queueSummaryDataRequire(self, recommended_queue):
+
 
 ################
 #### DRIVER ####
