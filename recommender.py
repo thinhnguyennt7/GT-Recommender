@@ -63,7 +63,12 @@ class Analysis(rC.Recommender):
 					if queues_Data[self.recommended_queue] > queues_Data[queue]:
 						self.recommended_queue = queue
 		arrData = dA.taskSplitRecommender(self.recommended_queue, ssh)
+
+		# For the purpose of testing
 		dA.taskNpsByCore("joeforce", ssh)
+
+		# Real code implemented (DO NOT DELETE)
+		# dA.taskNpsByCore(self.recommended_queue, ssh)
 
 		# Print result
 		if arrData[0] == '':
