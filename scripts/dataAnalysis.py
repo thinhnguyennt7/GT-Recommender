@@ -86,3 +86,51 @@ def collectWallTimeQueue(ssh, sampleQueues):
 def numberOfCoreLeft(taskNp):
     left, right = taskNp.split('/')
     return int(right) - int(left)
+
+# Return the last execution
+def lastExecution() -> str:
+    pass
+
+# Determine if the last executed fall under 10 mins
+def justExecuted() -> bool:
+    # Last execution file
+    filePath = "lastExecution/recently"
+    currentFile = open(filePath, 'r')
+    line = currentFile.readline()
+
+    # Get the last execution time
+    dateExecuted = line[10:20]
+    timeExecuted = line[21:29]
+
+    oldYear, oldMonth, oldDay = dateExecuted.split("-")
+    oldHour, oldMinutes, oldSecond = timeExecuted.split(":")
+
+    # Get the current time
+    currentTime = str(getCurrentDateTime())
+    date = currentTime[0:10]
+    time = currentTime[11:19]
+
+    year, month, day = date.split("-")
+    hour, minutes, second = time.split(":")
+
+    oldTime = datetime.datetime(int(oldYear), int(oldMonth), int(oldDay), int(oldHour), int(oldMinutes), int(oldSecond))
+
+    if oldTime < datetime.datetime.now():
+        diff_Year = int(year) - oldYear
+        diff_Month = int(month) - oldMonth
+        diff_Date = int(date) - oldDay
+
+        if diff_Year or diff_Month or diff_Date:
+            return False
+
+        diff_Hour = int(hour) - oldHour
+        diff_Min = int(minutes) - oldMinutes
+
+        if diff_Hour > 0:
+            return False
+        else:
+            if diff_Min <= 10:
+                return True
+            else:
+                return False
+    return True

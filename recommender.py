@@ -11,7 +11,7 @@ class Analysis(rC.Recommender):
 
 	# Instance Varibles
 	queues_Data = {}
-	sampleQueues = ['joeforce', 'joe-test', 'iw-shared-6', 'joe']
+	sampleQueues = ['joeforce', 'iw-shared-6', 'joe']
 	recommended_queue = None
 
 	# Connect into Georgia Tech PACE Login
@@ -65,10 +65,10 @@ class Analysis(rC.Recommender):
 		arrData = dA.taskSplitRecommender(self.recommended_queue, ssh)
 
 		# For the purpose of testing
-		dA.taskNpsByCore("joeforce", ssh)
+		# dA.taskNpsByCore("joeforce", ssh)
 
 		# Real code implemented (DO NOT DELETE)
-		# dA.taskNpsByCore(self.recommended_queue, ssh)
+		dA.taskNpsByCore(self.recommended_queue, ssh)
 
 		# Print result
 		if arrData[0] == '':
@@ -78,6 +78,15 @@ class Analysis(rC.Recommender):
 
 		print("----------------------------")
 		print (self.recommended_queue)
+
+		# Reduce the time by storing the last execution time that compiled
+		# executionPath = "lastExecution/recently"
+		# executionFile = open(executionPath, 'w')
+		# executionFile.write("Today is: " +  str(dA.getCurrentDateTime()) + '\n')
+		# executionFile.write(self.recommended_queue)
+		# executionFile.close()
+
+		print(dA.justExecuted())
 
 		# Write file
 		newFile.write(self.recommended_queue)
