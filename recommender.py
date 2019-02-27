@@ -1,18 +1,18 @@
 import time, sys, getpass, datetime, paramiko
 from os import path
 sys.path.insert(0, './scripts/')
-import recommenderClass as rC
-import dataAnalysis as dA
+import recommenderClass as mainClass
+import dataAnalysis as helper
 
 ##################
 #### ANALYSIS ####
 ##################
-class Analysis(rC.Recommender):
+class Analysis(mainClass.Recommender):
 
 	# Instance Varibles
 	queues_Data = {}
-	sampleQueues = ['joeforce', 'joe-test', 'iw-shared-6', 'joe']
-	recommended_queue = None
+	sampleQueues = ['joeforce', 'iw-shared-6', 'joe']
+	recommended_queue, timeRangeCheck = None, 10
 
 	# Connect into Georgia Tech PACE Login
 	def sshClientConnect(self):
@@ -22,13 +22,20 @@ class Analysis(rC.Recommender):
 			ssh.connect(self.hostname, username=self.username, password=self.password)
 
 			print("Collecting walltime for each queues...")
-			walltime = dA.collectWallTimeQueue(ssh, self.sampleQueues)
 
-			print("----------------------------")
-			print("gathering queue statistic")
-			print("executing qstat ...")
-			print("----------------------------")
-			self.recommendedQueue(self.queues_Data, ssh, walltime)
+			if (helper.justExecuted(self.timeRangeCheck)):
+				lines = helper.readDataFromTxtFile("lastExecution/Recently")
+				previousOutput = ''.join(lines)
+				print("----------------------------")
+				print(previousOutput)
+
+			else:
+				walltime = helper.collectWallTimeQueue(ssh, self.sampleQueues)
+				print("----------------------------")
+				print("gathering queue statistic")
+				print("executing qstat ...")
+				print("----------------------------")
+				self.recommendedQueue(self.queues_Data, ssh, walltime)
 
 		except paramiko.AuthenticationException:
 			print ("Wrong credentials.")
@@ -36,55 +43,52 @@ class Analysis(rC.Recommender):
 
 	# Algorithmns to analyze data and compute the best to the worse queue (in order)
 	def recommendedQueue(self, queues_Data, ssh, walltime):
-		# Generate a new file
-		filePath = "qstat_Run_logs/" + str(dA.getCurrentDateTime())
-		newFile = open(filePath, 'w')
-		newFile.write("Today is: " +  str(dA.getCurrentDateTime()) + '\n')
-		newFile.write('Current requester ID: ' + self.getUserName() + '\n')
 
+		# HANDLE THE COMMAND EXECUTE
 		ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('qstat -q')
+		mainLinesOut = rawOutput = 'Requester ID: ' + self.getUserName() + '\n\n'
 
-		# Algorithmns
+		# MAIN ALGORITHMNS
 		for line in iter(ssh_stdout.readline, ""):
 			data = line.split()
 			if len(data) > 1 and data[0] in self.sampleQueues:
-				print (data[0] + " is having " + data[6] + " watting")
-				queues_Data[data[0]] = int(data[6]) # 6 mean jobs in queue, 0 mean name of queue
-			newFile.write(line)
+				mainLinesOut += data[0] + " is having " + data[6] + " watting" + "\n"
+				queues_Data[data[0]] = int(data[6])
+			rawOutput += line + '\n'
 
 		for queue in queues_Data.keys():
 			if self.recommended_queue is None:
 				self.recommended_queue = queue
 			else:
 				if self.recommended_queue in walltime and queue in walltime:
-					if queues_Data[self.recommended_queue] > queues_Data[queue] and dA.compare(walltime[queue], walltime[self.recommended_queue]):
+					if queues_Data[self.recommended_queue] > queues_Data[queue] and helper.compare(walltime[queue], walltime[self.recommended_queue]):
 						self.recommended_queue = queue
 				else:
 					if queues_Data[self.recommended_queue] > queues_Data[queue]:
 						self.recommended_queue = queue
-		arrData = dA.taskSplitRecommender(self.recommended_queue, ssh)
 
-		# For the purpose of testing
-		dA.taskNpsByCore("joeforce", ssh)
+		# ANALYZE THE QUEUE DATA SET OF THE SERVER
+		serverDetails = helper.taskSplitRecommender(self.recommended_queue, ssh)
+		helper.taskNpsByCore(self.recommended_queue, ssh)
 
-		# Real code implemented (DO NOT DELETE)
-		# dA.taskNpsByCore(self.recommended_queue, ssh)
-
-		# Print result
-		if arrData[0] == '':
+		# CONCATENATE THE FINAL RESULT
+		if serverDetails[0] == '':
 			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'This queue does not contain nay Core or Hostname.'
 		else:
-			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'The Hostname has least core and cpu is: [' + arrData[0] + ']' + '\n' + 'The tasks/np is: [' + arrData[1] + ']' + '\n' + 'The number of CPU: [' + arrData[2] + ']'
+			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'The Hostname has least core and cpu is: [' + serverDetails[0] + ']' + '\n' + 'The tasks/np is: [' + serverDetails[1] + ']' + '\n' + 'The number of CPU: [' + serverDetails[2] + ']'
 
-		print("----------------------------")
-		print (self.recommended_queue)
+		# WRITE THE DATA INTO THE TXT FILE
+		fileName = "QSTAT_Raw_Data/" + str(helper.getCurrentDateTime())
+		helper.writeDataToTxtFile(fileName, rawOutput)
 
-		# Write file
-		newFile.write(self.recommended_queue)
-		newFile.close()
+		mainLinesOut += '\n' + self.recommended_queue
+		helper.writeDataToTxtFile("Queue_Analysis/NewestFetch", mainLinesOut)
 
-	# def queueSummaryDataRequire(self, recommended_queue):
+		# UPDATE THE NEW PREVIOUS VALUE TO TXT FILE
+		helper.writeDataToTxtFile("lastExecution/Recently", self.recommended_queue)
 
+		# PRINT FINAL RESULT
+		print(self.recommended_queue)
 
 ################
 #### DRIVER ####

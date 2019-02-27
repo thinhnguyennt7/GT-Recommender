@@ -1,0 +1,212 @@
+Today is: 2019-02-26 21:28:51.693356
+Current requester ID: tnguyen452
+
+
+server: shared-sched.pace.gatech.edu
+
+
+
+Queue            Memory CPU Time Walltime Node  Run Que Lm  State
+
+---------------- ------ -------- -------- ----  --- --- --  -----
+
+gemini-gpu         --      --       --      --   21   0 --   E R
+
+biobot             --      --       --      --    0   0 --   E R
+
+iw-shared-6        --      --       --      --  1919 1898 --   E R
+
+sonarforce-6       --      --       --      --    0   0 --   E R
+
+casper             --      --       --      --    0   0 --   E R
+
+davenprtforce-6    --      --       --      --    0   0 --   E R
+
+hygeneforce-6      --      --       --      --    0   0 --   E R
+
+enveomics-6        --      --       --      --  122 235 --   E R
+
+math-6             --      --       --      --    0   0 --   E R
+
+apurimac-6         --      --       --      --    0   0 --   E R
+
+apurimacforce-6    --      --       --      --    0   0 --   E R
+
+gpu-recent         --      --       --      --    0   0 --   E R
+
+optimusforce-6     --      --       --      --    4   5 --   E R
+
+cygnus28           --      --       --      --    0   0 --   E R
+
+habanero           --      --       --      --    0   0 --   D S
+
+coc-force          --      --       --      --    0   0 --   E R
+
+gaanam             --      --       --      --   17   0 --   E R
+
+threshold-6        --      --       --      --    0   0 --   E R
+
+mcg-net-gpu        --      --       --      --    0   0 --   E R
+
+chemxforce         --      --       --      --   23   3 --   E R
+
+joe                --      --       --      --  246 101 --   E R
+
+rombergforce       --      --       --      --    0   0 --   E R
+
+biocluster-gpu     --      --       --      --    0   0 --   E R
+
+critcelforce-6     --      --       --      --    0   0 --   E R
+
+cns-6-intel        --      --       --      --   12   0 --   E R
+
+cygnusforce-6      --      --       --      --   88   0 --   E R
+
+b5force-6          --      --       --      --    0   0 --   E R
+
+isblforce-6        --      --       --      --    0   0 --   E R
+
+gpu-eval           --      --    120:00:0   --    0   0 --   E R
+
+faceoff            --      --       --      --    0   0 --   D S
+
+flamel             --      --       --      --    2   0 --   E R
+
+sonar-6            --      --       --      --    0   0 --   E R
+
+prometheus         --      --       --      --    2   7 --   E R
+
+force-single-6     --      --       --        1   0   0 --   D S
+
+ceeforce           --      --       --      --    1   1 --   E R
+
+hummus             --      --       --      --    0   0 --   E R
+
+pvhforce           --      --       --      --    0   0 --   E R
+
+try-6              --      --       --      --    0   0 --   E R
+
+hydraforce         --      --       --      --    0   0 --   E R
+
+joe-fast           --      --       --      --    0   0 --   D S
+
+bioforce-6         --      --       --      --   10   3 --   E R
+
+gemini-cpu         --      --       --      --    7   0 --   E R
+
+prometforce-6      --      --       --      --  112 471 --   E R
+
+eceforce-6         --      --       --      --    6  44 --   E R
+
+bench-gpu          --      --       --      --    0   0 --   E R
+
+flamelforce        --      --       --      --    0   0 --   E R
+
+benchmark          --      --       --      --    0   0 --   D S
+
+spartacus          --      --       --      --   16   0 --   E R
+
+force-6            --      --       --      --   45  43 --   E R
+
+pvh                --      --       --      --    0   0 --   E R
+
+nvidia-gpu         --      --       --      --    0   0 --   E R
+
+optimus            --      --       --      --   11   2 --   E R
+
+joe-test           --      --       --      --    0   0 --   E R
+
+hygene-6           --      --       --      --    0   0 --   E R
+
+hydra              --      --       --      --    0   2 --   E R
+
+spinons            --      --       --      --    0   0 --   E R
+
+phi-shared         --      --       --      --    0   0 --   E R
+
+biohimem-6         --      --       --      --    0   0 --   E R
+
+dimer-6            --      --       --      --   10   0 --   E R
+
+coc-gpu            --      --       --      --    0   0 --   E R
+
+acceptance-shr     --      --       --      --    0   0 --   E R
+
+critcel            --      --       --      --    0   0 --   E R
+
+mathforce-6        --      --       --      --    1   0 --   E R
+
+cnsforce-6         --      --       --      --    0   0 --   E R
+
+romberg            --      --       --      --    0   0 --   E R
+
+isabella           --      --       --      --    0   0 --   D S
+
+radiance           --      --       --      --    0   0 --   E R
+
+chem-bigdata       --      --       --      --    0   0 --   E S
+
+critcel-prv        --      --       --      --    0   0 --   E R
+
+spartacusfrc-6     --      --       --      --    0   0 --   E R
+
+kastella           --      --       --      --    0   0 --   E R
+
+gaanam-gpu         --      --       --      --    0   0 --   E R
+
+mcg-net            --      --       --      --    0   0 --   E R
+
+biocluster-6       --      --       --      --  104   2 --   E R
+
+b5-prv-6           --      --       --      --    0   0 --   E R
+
+microcluster       --      --       --      --   30  32 --   E R
+
+gaanamforce        --      --       --      --    0   0 --   E R
+
+cygnuspa-6         --      --       --      --    0   0 --   E R
+
+kastellaforce-6    --      --       --      --    0   0 --   E R
+
+chemprot           --      --       --      --    0   0 --   E R
+
+force-gpu          --      --    120:00:0   --   10   3 --   E R
+
+threshold          --      --       --      --    0   0 --   E R
+
+coc                --      --       --      --    0   0 --   E R
+
+faceoffforce-6     --      --       --      --    0   0 --   E R
+
+spinonsforce       --      --       --      --  273   0 --   E R
+
+joeforce           --      --       --      --   85   2 --   E R
+
+hydra-gpu          --      --       --      --    1   0 --   E R
+
+chemx              --      --       --      --   74 443 --   E R
+
+micro-largedata    --      --       --      --    0   0 --   E R
+
+mday-test          --      --       --      --    0   0 --   E R
+
+ece                --      --       --      --    0   0 --   E R
+
+atlantis           --      --       --      --    0   0 --   E R
+
+cygnus64-6         --      --       --      --    0   0 --   E R
+
+habanero-gpu       --      --       --      --    0   0 --   E R
+
+cee                --      --       --      --    0   0 --   E R
+
+cygnus             --      --       --      --    0   0 --   E R
+
+b5-6               --      --       --      --    0   0 --   E R
+
+isabella-prv       --      --       --      --    7   5 --   E R
+
+                                               ----- -----
+
+                                                3259  3302
+
