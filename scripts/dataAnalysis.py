@@ -21,7 +21,7 @@ def compare(time1, time2):
 def taskSplitRecommender(recommenderQueue, ssh):
     hostname, nodes, maxData, arrData = '', '', 100.0, []
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
-    filePath = 'recommendQueue_summary_logs/' + str(getCurrentDateTime())
+    filePath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
     newFile = open(filePath, 'w')
     newFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
 
@@ -43,7 +43,7 @@ def taskSplitRecommender(recommenderQueue, ssh):
 
 # Get out the list of queue summary
 def taskNpsByCore(recommenderQueue, ssh):
-    summaryPath = 'hostName_Core_Requested_logs/' + str(getCurrentDateTime()) + '\n'
+    summaryPath = 'hostName_Core_Requested/' + str(getCurrentDateTime()) + '\n'
     summaryFile = open(summaryPath, 'w')
     summaryFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
     summaryFile.write("" + recommenderQueue + " Queue summary:" + "\n")
@@ -70,7 +70,7 @@ def getCurrentDateTime():
 def collectWallTimeQueue(ssh, sampleQueues):
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-whoami')
     walltime = {}
-    filePath = "paceWallTime_logs/" + str(getCurrentDateTime())
+    filePath = "paceWallTime_Data/" + str(getCurrentDateTime())
     newFile = open(filePath, 'w')
     newFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
     for line in iter(ssh_stdout.readline, ""):
@@ -88,15 +88,40 @@ def numberOfCoreLeft(taskNp):
     return int(right) - int(left)
 
 # Return the last execution
-def lastExecution() -> str:
+# def lastExecution() -> str:
+#     if justExecuted():
+#         # Read every line in the recently file
+#         # Print out the console
+#     else:
+#         print("ddsds")
+        # Write new data into the recently file
+        # executionPath = "lastExecution/recently"
+        # executionFile = open(executionPath, 'w')
+        # executionFile.write("Today is: " +  str(dA.getCurrentDateTime()) + '\n')
+        # executionFile.write(self.recommended_queue)
+        # executionFile.close()
+
+# Helper method to write data into the txt file
+def writeDataToTxtFile(path: str, data: str):
+    if data:
+        openFile = open(path, 'w')
+        openFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
+        openFile.write(data)
+        openFile.close()
+
+# Helper method to read the lines from the txt file
+def readDataFromTxtFile(path: str):
+    openFile = open(path, 'r')
+    lines = openFile.readlines()
+    return lines
+
+def compareTime(oldTime: int, newTime: int) -> bool:
     pass
 
 # Determine if the last executed fall under 10 mins
-def justExecuted() -> bool:
+def justExecuted(time_range: int) -> bool:
     # Last execution file
-    filePath = "lastExecution/recently"
-    currentFile = open(filePath, 'r')
-    line = currentFile.readline()
+    line = readDataFromTxtFile("lastExecution/recently")[0]
 
     # Get the last execution time
     dateExecuted = line[10:20]
@@ -116,20 +141,20 @@ def justExecuted() -> bool:
     oldTime = datetime.datetime(int(oldYear), int(oldMonth), int(oldDay), int(oldHour), int(oldMinutes), int(oldSecond))
 
     if oldTime < datetime.datetime.now():
-        diff_Year = int(year) - oldYear
-        diff_Month = int(month) - oldMonth
-        diff_Date = int(date) - oldDay
+        diff_Year = int(year) - int(oldYear)
+        diff_Month = int(month) - int(oldMonth)
+        diff_Date = int(day) - int(oldDay)
 
         if diff_Year or diff_Month or diff_Date:
             return False
 
-        diff_Hour = int(hour) - oldHour
-        diff_Min = int(minutes) - oldMinutes
+        diff_Hour = int(hour) - int(oldHour)
+        diff_Min = int(minutes) - int(oldMinutes)
 
         if diff_Hour > 0:
             return False
         else:
-            if diff_Min <= 10:
+            if diff_Min <= time_range:
                 return True
             else:
                 return False
