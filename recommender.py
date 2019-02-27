@@ -69,8 +69,7 @@ class Analysis(mainClass.Recommender):
 
 		# ANALYZE THE QUEUE DATA SET OF THE SERVER
 		serverDetails = helper.taskSplitRecommender(self.recommended_queue, ssh)
-
-		# dA.taskNpsByCore(self.recommended_queue, ssh)
+		helper.taskNpsByCore(self.recommended_queue, ssh)
 
 		# CONCATENATE THE FINAL RESULT
 		if serverDetails[0] == '':
@@ -101,5 +100,5 @@ if __name__ == '__main__':
 	password = getpass.getpass("Please enter your GT password: ")
 
 	# Instantiate
-	Recommender = Analysis(username="tnguyen452", password="12Th34567890./")
+	Recommender = Analysis(username, password)
 	Recommender.sshClientConnect()
