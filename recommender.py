@@ -68,7 +68,9 @@ class Analysis(mainClass.Recommender):
 						self.recommended_queue = queue
 
 		# ANALYZE THE QUEUE DATA SET OF THE SERVER
-		serverDetails = helper.taskSplitRecommender(self.recommended_queue, ssh)
+		serverDetails = helper.taskSplitByNodeRequested(self.nodeRequested, self.recommended_queue, ssh)
+
+		# Auto generate the new list by number of core nodes
 		helper.taskNpsByCore(self.recommended_queue, ssh)
 
 		# CONCATENATE THE FINAL RESULT
@@ -99,6 +101,16 @@ if __name__ == '__main__':
 	username = input("Please enter your GT username: ")
 	password = getpass.getpass("Please enter your GT password: ")
 
+	# Verify make sure the number of node Requested input correct type
+	while True:
+		try:
+			nodeRequested = int(input("Please entere the number of node request: "))
+		except:
+			print("The node number request must be an integer")
+			continue
+		else:
+			break
+
 	# Instantiate
-	Recommender = Analysis(username, password)
+	Recommender = Analysis(username, password, nodeRequested)
 	Recommender.sshClientConnect()
