@@ -22,6 +22,7 @@ def compare(time1, time2):
 def taskSplitByNodeRequested(nodeRequested: int, recommenderQueue: str, ssh):
     hostname, nodes, maxData, lines = '', '', 100.0, ''
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
+    serverLines = 'NUMBER OF TASK/NP REQUESTED: ' + '[' + str(nodeRequested) + ']' + '\n'
 
     # Get out the one has the least CPU and core number
     for line in iter(ssh_stdout.readline, ""):
@@ -30,40 +31,26 @@ def taskSplitByNodeRequested(nodeRequested: int, recommenderQueue: str, ssh):
         if len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
             # Calculate the number of remainding node of the hostname
             currentTask = dataNode[1]
-            left, right = currentTask.split('/')
-            spaceNodeComplement = int(right) - int(left)
+            spaceNodeRemain = numberOfCoreLeft(currentTask)
 
-            # Calculate the one has the least cpu in use
-            if float(dataNode[2]) < float(maxData) and spaceNodeComplement >= nodeRequested:
-                maxData = float(dataNode[2])
-                hostname = dataNode[0]
-                nodes = currentTask
+            # If the current remain node larger then the number of node requested
+            if spaceNodeRemain >= nodeRequested:
+                serverLines += line
+
+                # Calculate the one has the least cpu in use
+                if float(dataNode[2]) < float(maxData):
+                    maxData = float(dataNode[2])
+                    hostname = dataNode[0]
+                    nodes = currentTask
 
     # Write new data to logs
-    filePath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
-    lg.writeDataToTxtFile(filePath, lines)
+    rawDataPath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
+    lg.writeDataToTxtFile(rawDataPath, lines)
+
+    writeServerPath = 'hostName_Core_Requested/' + 'newRelease'
+    lg.writeDataToTxtFile(writeServerPath, serverLines)
 
     return [hostname, nodes, str(maxData)]
-
-# Get out the list of queue summary
-def taskNpsByCore(nodeRequested: int, recommenderQueue: str, ssh):
-    baseCounter, lines = 2, "" + recommenderQueue + " Queue summary:" + "\n"
-
-    # Generate the summary logs file base on best recommender queue and base core number
-    while baseCounter <= 64:
-        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
-        lines += "NUMBER OF TASK/NP REQUESTED: " + '[' + str(baseCounter) + ']' + '\n'
-        for line in iter(ssh_stdout.readline, ""):
-            lineData = line.split()
-            if len(lineData) >= 8 and lineData[6] != 'No' and lineData[2] not in ['Nodes', 'Memory', 'Cpu%']:
-                if numberOfCoreLeft(lineData[1]) >= baseCounter:
-                    lines += line
-        baseCounter *= 2
-        lines += '\n'
-
-    # Write new data to logs
-    summaryPath = 'hostName_Core_Requested/' + str(getCurrentDateTime())
-    lg.writeDataToTxtFile(summaryPath, lines)
 
 # Return the current date with time
 def getCurrentDateTime():
