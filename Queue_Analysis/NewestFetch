@@ -1,11 +1,11 @@
-Today is: 2019-02-26 22:16:29.356340
-Requester ID: tnguyen452
+Today is: 2019-03-01 22:46:26.589252
 
-iw-shared-6 is having 1726 watting
-joe is having 111 watting
-joeforce is having 2 watting
+Requester ID: tnguyen452
+iw-shared-6 is having 34 watting
+joe is having 77 watting
+joeforce is having 1 watting
 
 The Recommended queue is: [joeforce]
-The Hostname has least core and cpu is: [rich133-b13-21-l]
-The tasks/np is: [0/16]
-The number of CPU: [0.0]
+The Hostname is: [iw-c42-25]
+The tasks/np is (used/total): [12/64]
+The number of CPU remain: [18.8]

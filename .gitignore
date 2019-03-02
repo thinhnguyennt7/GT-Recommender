@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+lastExecution/*
+HostServerDetail_Data/*
+hostName_Core_Requested/*
+paceWallTime_Data/*
+Queue_Analysis/*
+
 # Distribution / packaging
 .Python
 build/

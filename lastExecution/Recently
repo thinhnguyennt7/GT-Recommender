@@ -1,5 +1,6 @@
-Today is: 2019-02-26 22:16:29.356510
+Today is: 2019-03-01 22:46:26.589516
+
 The Recommended queue is: [joeforce]
-The Hostname has least core and cpu is: [rich133-b13-21-l]
-The tasks/np is: [0/16]
-The number of CPU: [0.0]
+The Hostname is: [iw-c42-25]
+The tasks/np is (used/total): [12/64]
+The number of CPU remain: [18.8]
