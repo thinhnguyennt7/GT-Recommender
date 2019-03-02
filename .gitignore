@@ -12,6 +12,7 @@ hostName_Core_Requested/*
 paceWallTime_Data/*
 Queue_Analysis/*
 QSTAT_Raw_Data/*
+error_logs/*
 
 # Distribution / packaging
 .Python
