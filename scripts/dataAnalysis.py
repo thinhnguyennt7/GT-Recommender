@@ -21,7 +21,7 @@ def compare(time1, time2):
 
 # Estimate the total amount task should split out for each hostname
 def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: str, ssh):
-    hostname, nodes, maxData, lines = '', '', 100.0, ''
+    hostname, nodes, minCPU, lines = '', '', 100.0, ''
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
     serverLines = 'Requester ID: ' + userID + '\n\n' + 'NUMBER OF TASK/NP REQUESTED: ' + '[' + str(nodeRequested) + ']' + '\n\n'
     foundServer = False
@@ -32,7 +32,7 @@ def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: 
         dataNode = line.split()
 
         # Copy the titles
-        if (dataNode[0] == 'Hostname' and dataNode[5] == 'Mem%'):
+        if (len(dataNode) >= 8 and dataNode[0] == 'Hostname' and dataNode[5] == 'Mem%'):
             serverLines += line
 
         if len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
@@ -46,8 +46,8 @@ def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: 
                 foundServer = True
 
                 # Calculate the one has the least cpu in use
-                if float(dataNode[2]) < float(maxData):
-                    maxData = float(dataNode[2])
+                if float(dataNode[2]) < float(minCPU):
+                    minCPU = float(dataNode[2])
                     hostname = dataNode[0]
                     nodes = currentTask
 
@@ -60,7 +60,7 @@ def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: 
     writeServerPath = 'hostName_Core_Requested/' + 'newRelease'
     lg.writeDataToTxtFile(writeServerPath, serverLines)
 
-    return [hostname, nodes, str(maxData)]
+    return [hostname, nodes, str(minCPU)]
 
 
 # Return the current date with time
