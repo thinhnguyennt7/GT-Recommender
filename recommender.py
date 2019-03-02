@@ -2,7 +2,8 @@ import time, sys, getpass, datetime, paramiko
 from os import path
 sys.path.insert(0, './scripts/')
 import recommenderClass as mainClass
-import dataAnalysis as helper
+import dataAnalysis as da
+import logStatement as lg
 
 ##################
 #### ANALYSIS ####
@@ -23,14 +24,15 @@ class Analysis(mainClass.Recommender):
 
 			print("Collecting walltime for each queues...")
 
-			if (helper.justExecuted(self.timeRangeCheck)):
-				lines = helper.readDataFromTxtFile("lastExecution/Recently")
+			# If the program just executed and the data inside still valid then
+			if (da.justExecuted(self.timeRangeCheck) and da.verifyData(self.nodeRequested)):
+				lines = lg.readDataFromTxtFile("lastExecution/Recently")
 				previousOutput = ''.join(lines)
 				print("----------------------------")
 				print(previousOutput)
 
 			else:
-				walltime = helper.collectWallTimeQueue(ssh, self.sampleQueues)
+				walltime = da.collectWallTimeQueue(ssh, self.sampleQueues)
 				print("----------------------------")
 				print("gathering queue statistic")
 				print("executing qstat ...")
@@ -46,7 +48,7 @@ class Analysis(mainClass.Recommender):
 
 		# HANDLE THE COMMAND EXECUTE
 		ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('qstat -q')
-		mainLinesOut = rawOutput = 'Requester ID: ' + self.getUserName() + '\n\n'
+		mainLinesOut = rawOutput = 'Requester ID: ' + self.getUserName() + '\n'
 
 		# MAIN ALGORITHMNS
 		for line in iter(ssh_stdout.readline, ""):
@@ -61,36 +63,34 @@ class Analysis(mainClass.Recommender):
 				self.recommended_queue = queue
 			else:
 				if self.recommended_queue in walltime and queue in walltime:
-					if queues_Data[self.recommended_queue] > queues_Data[queue] and helper.compare(walltime[queue], walltime[self.recommended_queue]):
+					if queues_Data[self.recommended_queue] > queues_Data[queue] and da.compare(walltime[queue], walltime[self.recommended_queue]):
 						self.recommended_queue = queue
 				else:
 					if queues_Data[self.recommended_queue] > queues_Data[queue]:
 						self.recommended_queue = queue
 
-		# ANALYZE THE QUEUE DATA SET OF THE SERVER
-		serverDetails = helper.taskSplitByNodeRequested(self.nodeRequested, self.recommended_queue, ssh)
-
-		# Auto generate the new list by number of core nodes
-		helper.taskNpsByCore(self.recommended_queue, ssh)
+		# ANALYZE THE QUEUE DATA SET OF THE SERVER AND GENERATE LIST OF SERVER NAME
+		serverDetails = da.taskSplitByNodeRequested(self.getUserName(), self.nodeRequested, self.recommended_queue, ssh)
 
 		# CONCATENATE THE FINAL RESULT
 		if serverDetails[0] == '':
-			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'This queue does not contain nay Core or Hostname.'
+			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'There are no server has enough number of node requested as you want!'
 		else:
-			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'The Hostname has least core and cpu is: [' + serverDetails[0] + ']' + '\n' + 'The tasks/np is: [' + serverDetails[1] + ']' + '\n' + 'The number of CPU: [' + serverDetails[2] + ']'
+			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'The Hostname is: [' + serverDetails[0] + ']' + '\n' + 'The tasks/np is (used/total): [' + serverDetails[1] + ']' + '\n' + 'The number of CPU remain: [' + serverDetails[2] + ']'
 
 		# WRITE THE DATA INTO THE TXT FILE
-		fileName = "QSTAT_Raw_Data/" + str(helper.getCurrentDateTime())
-		helper.writeDataToTxtFile(fileName, rawOutput)
+		fileName = "QSTAT_Raw_Data/" + str(da.getCurrentDateTime())
+		lg.writeDataToTxtFile(fileName, rawOutput)
 
 		mainLinesOut += '\n' + self.recommended_queue
-		helper.writeDataToTxtFile("Queue_Analysis/NewestFetch", mainLinesOut)
+		lg.writeDataToTxtFile("Queue_Analysis/NewestFetch", mainLinesOut)
 
 		# UPDATE THE NEW PREVIOUS VALUE TO TXT FILE
-		helper.writeDataToTxtFile("lastExecution/Recently", self.recommended_queue)
+		lg.writeDataToTxtFile("lastExecution/Recently", self.recommended_queue)
 
 		# PRINT FINAL RESULT
 		print(self.recommended_queue)
+
 
 ################
 #### DRIVER ####
@@ -105,6 +105,12 @@ if __name__ == '__main__':
 	while True:
 		try:
 			nodeRequested = int(input("Please entere the number of node request: "))
+			if (nodeRequested <= 0):
+				print("The node number request must positive integer")
+				continue
+			elif (nodeRequested > 64):
+				print("The PACE system take up to 64 bits")
+				continue
 		except:
 			print("The node number request must be an integer")
 			continue
