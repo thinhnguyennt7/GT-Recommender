@@ -9,18 +9,18 @@ def writeDataToTxtFile(path: str, data: str):
 	# Create folder if it not in there yet
 	createNewFolder(folderPath)
 
-    if data:
-        openFile = open(path, 'w')
-        openFile.write("Today is: " +  str(da.getCurrentDateTime()) + '\n\n')
-        openFile.write(data)
-        openFile.close()
+	if data:
+		openFile = open(path, 'w')
+		openFile.write("Today is: " +  str(da.getCurrentDateTime()) + '\n\n')
+		openFile.write(data)
+		openFile.close()
 
 
 # Helper method to read the lines from the txt file
 def readDataFromTxtFile(path: str):
-    openFile = open(path, 'r')
-    lines = openFile.readlines()
-    return lines
+	openFile = open(path, 'r')
+	lines = openFile.readlines()
+	return lines
 
 
 # Helper method to check if the file exist in the folder
