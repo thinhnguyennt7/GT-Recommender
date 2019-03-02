@@ -1,5 +1,6 @@
 import datetime
-import recommenderClass as mainClass
+import logStatement as lg
+
 
 # Helper method to check the time has the least
 def compare(time1, time2):
@@ -17,88 +18,97 @@ def compare(time1, time2):
         else:
             return 0
 
+
 # Estimate the total amount task should split out for each hostname
-def taskSplitRecommender(recommenderQueue, ssh):
-    hostname, nodes, maxData, lines = '', '', 100.0, ''
+def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: str, ssh):
+    hostname, nodes, minCPU, lines = '', '', 100.0, ''
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
+    serverLines = 'Requester ID: ' + userID + '\n\n' + 'NUMBER OF TASK/NP REQUESTED: ' + '[' + str(nodeRequested) + ']' + '\n\n'
+    foundServer = False
 
     # Get out the one has the least CPU and core number
     for line in iter(ssh_stdout.readline, ""):
         lines += line
         dataNode = line.split()
+
+        # Copy the titles
+        if (len(dataNode) >= 8 and dataNode[0] == 'Hostname' and dataNode[5] == 'Mem%'):
+            serverLines += line
+
         if len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
-            # Calculate the one has the least cpu in use
-            if float(dataNode[2]) < float(maxData):
-                maxData = float(dataNode[2])
-                hostname = dataNode[0]
-                nodes = dataNode[1]
+            # Calculate the number of remainding node of the hostname
+            currentTask = dataNode[1]
+            spaceNodeRemain = numberOfCoreLeft(currentTask)
+
+            # If the current remain node larger then the number of node requested
+            if spaceNodeRemain >= nodeRequested:
+                serverLines += line
+                foundServer = True
+
+                # Calculate the one has the least cpu in use
+                if float(dataNode[2]) < float(minCPU):
+                    minCPU = float(dataNode[2])
+                    hostname = dataNode[0]
+                    nodes = currentTask
 
     # Write new data to logs
-    filePath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
-    writeDataToTxtFile(filePath, lines)
+    rawDataPath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
+    lg.writeDataToTxtFile(rawDataPath, lines)
 
-    return [hostname, nodes, str(maxData)]
+    if (not foundServer):
+        serverLines += '**Can not find any queue has the match number of node requested**'
+    writeServerPath = 'hostName_Core_Requested/' + 'newRelease'
+    lg.writeDataToTxtFile(writeServerPath, serverLines)
 
-# Get out the list of queue summary
-def taskNpsByCore(recommenderQueue, ssh):
-    baseCounter, lines = 2, "" + recommenderQueue + " Queue summary:" + "\n"
+    return [hostname, nodes, str(minCPU)]
 
-    # Generate the summary logs file base on best recommender queue and base core number
-    while baseCounter <= 64:
-        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
-        lines += "NUMBER OF TASK/NP REQUESTED: " + '[' + str(baseCounter) + ']' + '\n'
-        for line in iter(ssh_stdout.readline, ""):
-            lineData = line.split()
-            if len(lineData) >= 8 and lineData[6] != 'No' and lineData[2] not in ['Nodes', 'Memory', 'Cpu%']:
-                if numberOfCoreLeft(lineData[1]) >= baseCounter:
-                    lines += line
-        baseCounter *= 2
-        lines += '\n'
-
-    # Write new data to logs
-    summaryPath = 'hostName_Core_Requested/' + str(getCurrentDateTime())
-    writeDataToTxtFile(summaryPath, lines)
 
 # Return the current date with time
 def getCurrentDateTime():
     return datetime.datetime.now()
 
+
 # Collect of the total of walltime of each queues
 def collectWallTimeQueue(ssh, sampleQueues):
-    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-whoami')
-    walltime, lines = {}, ''
 
-    for line in iter(ssh_stdout.readline, ""):
-        lines += line
-        queue_Node = line.split()
-        if (len(queue_Node) != 0):
-            if queue_Node[0] in sampleQueues:
-                walltime[queue_Node[0]] = queue_Node[1]
+    walltime = dict()
+    pathName = "paceWallTime_Data/" + "Queue_walltime"
 
-    # Write new data to logs
-    filePath = "paceWallTime_Data/" + str(getCurrentDateTime())
-    writeDataToTxtFile(filePath, lines)
+    # If we already executed the command
+    if not lg.checkFileInPath(pathName):
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-whoami')
+        lines = ''
+
+        for line in iter(ssh_stdout.readline, ""):
+            lines += line
+            queue_Node = line.split()
+            if (len(queue_Node) != 0):
+                if queue_Node[0] in sampleQueues:
+                    walltime[queue_Node[0]] = queue_Node[1]
+
+        # Write new data to logs
+        lg.writeDataToTxtFile(pathName, lines)
+    else:
+        # Read the previous data from txt file
+        data = lg.readDataFromTxtFile(pathName)
+
+        for i in range(len(data) - 4, len(data), 1):
+            # Get out the current queue name
+            currentQueue = data[i][5: 5 + 20].strip()
+            if (currentQueue in sampleQueues):
+                # Begin index of string manipulation
+                begin = 5 + len(currentQueue) + 10
+                currentWallTime = data[i][begin : begin + 20]
+                walltime[currentQueue] = currentWallTime.strip()
 
     return walltime
+
 
 # Helper method to return the number of core cpu has left in the hostname
 def numberOfCoreLeft(taskNp):
     left, right = taskNp.split('/')
     return int(right) - int(left)
 
-# Helper method to write data into the txt file
-def writeDataToTxtFile(path: str, data: str):
-    if data:
-        openFile = open(path, 'w')
-        openFile.write("Today is: " +  str(getCurrentDateTime()) + '\n')
-        openFile.write(data)
-        openFile.close()
-
-# Helper method to read the lines from the txt file
-def readDataFromTxtFile(path: str):
-    openFile = open(path, 'r')
-    lines = openFile.readlines()
-    return lines
 
 def compareTimeRange(oldTime, newTime, time_range) -> bool:
     # Generate the old time range to real data value
@@ -124,24 +134,61 @@ def compareTimeRange(oldTime, newTime, time_range) -> bool:
                 return False
     return True
 
+
 # Determine if the last executed fall under 10 mins
 def justExecuted(time_range: int) -> bool:
-    # Last execution file
-    previousExecutedDate = readDataFromTxtFile("lastExecution/recently")[0]
+    pathName = "lastExecution/recently"
 
-    # Get the last execution time
-    dateExecuted = previousExecutedDate[10:20]
-    timeExecuted = previousExecutedDate[21:29]
-    oldYear, oldMonth, oldDay = dateExecuted.split("-")
-    oldHour, oldMinutes, oldSecond = timeExecuted.split(":")
-    oldTime = [int(oldYear), int(oldMonth), int(oldDay), int(oldHour), int(oldMinutes), int(oldSecond)]
+    if not lg.checkFileInPath(pathName):
+        return False
+    else:
+        # Last execution file
+        previousExecutedDate = lg.readDataFromTxtFile("lastExecution/recently")[0]
 
-    # Get the current time
-    currentTime = str(getCurrentDateTime())
-    date = currentTime[0:10]
-    time = currentTime[11:19]
-    year, month, day = date.split("-")
-    hour, minutes, second = time.split(":")
-    newTime = [int(year), int(month), int(day), int(hour), int(minutes), int(second)]
+        # Get the last execution time
+        dateExecuted = previousExecutedDate[10:20]
+        timeExecuted = previousExecutedDate[21:29]
+        oldYear, oldMonth, oldDay = dateExecuted.split("-")
+        oldHour, oldMinutes, oldSecond = timeExecuted.split(":")
+        oldTime = [int(oldYear), int(oldMonth), int(oldDay), int(oldHour), int(oldMinutes), int(oldSecond)]
 
-    return compareTimeRange(oldTime, newTime, time_range)
+        # Get the current time
+        currentTime = str(getCurrentDateTime())
+        date = currentTime[0:10]
+        time = currentTime[11:19]
+        year, month, day = date.split("-")
+        hour, minutes, second = time.split(":")
+        newTime = [int(year), int(month), int(day), int(hour), int(minutes), int(second)]
+
+        return compareTimeRange(oldTime, newTime, time_range)
+
+
+# Verify if the recently file data has correct data or not
+def verifyData(nodeRequested: int) -> bool:
+    # The path address
+    pathName, previousNumberOfNode = "lastExecution/recently", []
+
+    if not lg.checkFileInPath(pathName):
+        return False
+    else:
+        # Last execution file
+        rawData = lg.readDataFromTxtFile(pathName)
+
+        # Get the task/np from the last executed file
+        for i in range(len(rawData)):
+            if ('The tasks/np' in rawData[i]):
+                previousNumberOfNode = rawData[i]
+                break
+
+        # If the array has value
+        if previousNumberOfNode:
+            # Get the number of node
+            index = previousNumberOfNode.index('[')
+            node = previousNumberOfNode[index + 1: index + 6]
+
+            # Compute the remainNode in server
+            remainNode = numberOfCoreLeft(node)
+
+            return remainNode >= nodeRequested
+        else:
+            return False
