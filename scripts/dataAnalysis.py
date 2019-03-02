@@ -1,6 +1,6 @@
 import datetime
-import recommenderClass as mainClass
 import logStatement as lg
+
 
 # Helper method to check the time has the least
 def compare(time1, time2):
@@ -18,16 +18,23 @@ def compare(time1, time2):
         else:
             return 0
 
+
 # Estimate the total amount task should split out for each hostname
-def taskSplitByNodeRequested(nodeRequested: int, recommenderQueue: str, ssh):
+def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: str, ssh):
     hostname, nodes, maxData, lines = '', '', 100.0, ''
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
-    serverLines = 'NUMBER OF TASK/NP REQUESTED: ' + '[' + str(nodeRequested) + ']' + '\n'
+    serverLines = 'Requester ID: ' + userID + '\n\n' + 'NUMBER OF TASK/NP REQUESTED: ' + '[' + str(nodeRequested) + ']' + '\n\n'
+    foundServer = False
 
     # Get out the one has the least CPU and core number
     for line in iter(ssh_stdout.readline, ""):
         lines += line
         dataNode = line.split()
+
+        # Copy the titles
+        if (dataNode[0] == 'Hostname' and dataNode[5] == 'Mem%'):
+            serverLines += line
+
         if len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
             # Calculate the number of remainding node of the hostname
             currentTask = dataNode[1]
@@ -36,6 +43,7 @@ def taskSplitByNodeRequested(nodeRequested: int, recommenderQueue: str, ssh):
             # If the current remain node larger then the number of node requested
             if spaceNodeRemain >= nodeRequested:
                 serverLines += line
+                foundServer = True
 
                 # Calculate the one has the least cpu in use
                 if float(dataNode[2]) < float(maxData):
@@ -47,14 +55,18 @@ def taskSplitByNodeRequested(nodeRequested: int, recommenderQueue: str, ssh):
     rawDataPath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
     lg.writeDataToTxtFile(rawDataPath, lines)
 
+    if (not foundServer):
+        serverLines += '**Can not find any queue has the match number of node requested**'
     writeServerPath = 'hostName_Core_Requested/' + 'newRelease'
     lg.writeDataToTxtFile(writeServerPath, serverLines)
 
     return [hostname, nodes, str(maxData)]
 
+
 # Return the current date with time
 def getCurrentDateTime():
     return datetime.datetime.now()
+
 
 # Collect of the total of walltime of each queues
 def collectWallTimeQueue(ssh, sampleQueues):
@@ -91,10 +103,12 @@ def collectWallTimeQueue(ssh, sampleQueues):
 
     return walltime
 
+
 # Helper method to return the number of core cpu has left in the hostname
 def numberOfCoreLeft(taskNp):
     left, right = taskNp.split('/')
     return int(right) - int(left)
+
 
 def compareTimeRange(oldTime, newTime, time_range) -> bool:
     # Generate the old time range to real data value
@@ -119,6 +133,7 @@ def compareTimeRange(oldTime, newTime, time_range) -> bool:
             else:
                 return False
     return True
+
 
 # Determine if the last executed fall under 10 mins
 def justExecuted(time_range: int) -> bool:
@@ -147,17 +162,33 @@ def justExecuted(time_range: int) -> bool:
 
         return compareTimeRange(oldTime, newTime, time_range)
 
+
 # Verify if the recently file data has correct data or not
 def verifyData(nodeRequested: int) -> bool:
-    # Last execution file
-    previousNumberOfNode = lg.readDataFromTxtFile("lastExecution/recently")[3]
+    # The path address
+    pathName, previousNumberOfNode = "lastExecution/recently", []
 
-    # Get the number of node
-    index = previousNumberOfNode.index('[')
-    node = previousNumberOfNode[index + 1: index + 6]
+    if not lg.checkFileInPath(pathName):
+        return False
+    else:
+        # Last execution file
+        rawData = lg.readDataFromTxtFile(pathName)
 
-    # Compute the remainNode in server
-    usedNode, allNode = node.split('/')
-    remainNode = int(allNode) - int(usedNode)
+        # Get the task/np from the last executed file
+        for i in range(len(rawData)):
+            if ('The tasks/np' in rawData[i]):
+                previousNumberOfNode = rawData[i]
+                break
 
-    return remainNode >= nodeRequested
+        # If the array has value
+        if previousNumberOfNode:
+            # Get the number of node
+            index = previousNumberOfNode.index('[')
+            node = previousNumberOfNode[index + 1: index + 6]
+
+            # Compute the remainNode in server
+            remainNode = numberOfCoreLeft(node)
+
+            return remainNode >= nodeRequested
+        else:
+            return False
