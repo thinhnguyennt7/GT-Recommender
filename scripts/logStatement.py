@@ -5,7 +5,7 @@ import dataAnalysis as da
 def writeDataToTxtFile(path: str, data: str):
     if data:
         openFile = open(path, 'w')
-        openFile.write("Today is: " +  str(da.getCurrentDateTime()) + '\n')
+        openFile.write("Today is: " +  str(da.getCurrentDateTime()) + '\n\n')
         openFile.write(data)
         openFile.close()
 
