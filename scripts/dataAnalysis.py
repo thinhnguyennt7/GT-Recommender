@@ -183,8 +183,8 @@ def verifyData(nodeRequested: int) -> bool:
         # If the array has value
         if previousNumberOfNode:
             # Get the number of node
-            index = previousNumberOfNode.index('[')
-            node = previousNumberOfNode[index + 1: index + 6]
+            begin, end = previousNumberOfNode.index('[') + 1, previousNumberOfNode.index(']')
+            node = previousNumberOfNode[begin: end]
 
             # Compute the remainNode in server
             remainNode = numberOfCoreLeft(node)
