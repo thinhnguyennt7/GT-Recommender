@@ -21,7 +21,6 @@ class Analysis(mainClass.Recommender):
 			ssh = paramiko.SSHClient()
 			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 			ssh.connect(self.hostname, username=self.username, password=self.password)
-
 			print("Collecting walltime for each queues...")
 
 			# If the program just executed and the data inside still valid then
