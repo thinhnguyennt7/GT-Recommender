@@ -107,7 +107,6 @@ def collectWallTimeQueue(ssh, sampleQueues):
 
 # Helper method to return the number of core cpu has left in the hostname
 def numberOfCoreLeft(taskNp):
-    print(taskNp.split('/'))
     left, right = taskNp.split('/')
     return int(right) - int(left)
 
