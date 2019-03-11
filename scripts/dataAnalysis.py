@@ -24,7 +24,7 @@ def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: 
     hostname, nodes, minCPU, lines = '', '', 100.0, ''
     ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('pace-check-queue ' + recommenderQueue)
     serverLines = 'Requester ID: ' + userID + '\n\n' + 'NUMBER OF TASK/NP REQUESTED: ' + '[' + str(nodeRequested) + ']' + '\n\n'
-    foundServer = False
+    lineStart = 0 ; foundServer = False
 
     # Get out the one has the least CPU and core number
     for line in iter(ssh_stdout.readline, ""):
@@ -35,7 +35,7 @@ def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: 
         if (len(dataNode) >= 8 and dataNode[0] == 'Hostname' and dataNode[5] == 'Mem%'):
             serverLines += line
 
-        if len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
+        if lineStart >= 10 and len(dataNode) >= 8 and dataNode[6] != 'No' and dataNode[2] not in ['Nodes', 'Memory', 'Cpu%']:
             # Calculate the number of remainding node of the hostname
             currentTask = dataNode[1]
             spaceNodeRemain = numberOfCoreLeft(currentTask)
@@ -50,6 +50,7 @@ def taskSplitByNodeRequested(userID: str, nodeRequested: int, recommenderQueue: 
                     minCPU = float(dataNode[2])
                     hostname = dataNode[0]
                     nodes = currentTask
+        lineStart += 1
 
     # Write new data to logs
     rawDataPath = 'HostServerDetail_Data/' + str(getCurrentDateTime())
@@ -106,6 +107,7 @@ def collectWallTimeQueue(ssh, sampleQueues):
 
 # Helper method to return the number of core cpu has left in the hostname
 def numberOfCoreLeft(taskNp):
+    print(taskNp.split('/'))
     left, right = taskNp.split('/')
     return int(right) - int(left)
 
