@@ -13,6 +13,8 @@ paceWallTime_Data/*
 Queue_Analysis/*
 QSTAT_Raw_Data/*
 error_logs/*
+lastExecution/*
+Queue_Analysis/*
 
 # Distribution / packaging
 .Python
