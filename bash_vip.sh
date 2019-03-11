@@ -94,10 +94,10 @@ fi
 
 
 #Execute the main code
-echo "Run python3 recommender.py"
-python3 recommender.py
-if [ $? -ne 0 ]
-then
-	echo "Error: Can not execute the python file"
-	exit 30
-fi
+#echo "Run python3 recommender.py"
+#python3 recommender.py
+#if [ $? -ne 0 ]
+#then
+#	echo "Error: Can not execute the python file"
+#	exit 30
+#fi
