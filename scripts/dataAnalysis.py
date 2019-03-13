@@ -1,5 +1,6 @@
 import datetime
 import logStatement as lg
+import sys
 
 
 # Helper method to check the time has the least
@@ -167,29 +168,68 @@ def justExecuted(time_range: int) -> bool:
 # Verify if the recently file data has correct data or not
 def verifyData(nodeRequested: int) -> bool:
     # The path address
-    pathName, previousNumberOfNode = "lastExecution/recently", []
+    pathName, previousNumberOfNode, currentQueueInFile = "lastExecution/recently", [], ''
+    queueAnalysisPath, hashDict = "Queue_Analysis/NewestFetch", {}
 
-    if not lg.checkFileInPath(pathName):
+    if not lg.checkFileInPath(pathName) or not lg.checkFileInPath(queueAnalysisPath):
         return False
     else:
         # Last execution file
         rawData = lg.readDataFromTxtFile(pathName)
+        oldWaitingJobs = lg.readDataFromTxtFile(queueAnalysisPath)
+
+        # Collect number of waiting time for jobs
+        for i in range(len(oldWaitingJobs)):
+            currentLine = oldWaitingJobs[i]
+            if 'Recommended queue' in currentLine:
+                continue
+            if 'joeforce' in currentLine or 'joe' in currentLine or 'iw-shared-6' in currentLine:
+                queueName, _, _, numberJobWaiting, _ = currentLine.split(' ')
+                hashDict[queueName] = int(numberJobWaiting)
+
+        # Get out the best queue has least job waiting
+        minimunJob, bestQueue = sys.maxsize, ''
+        for queueName in hashDict.keys():
+            currentQueueVal = hashDict[queueName]
+            if currentQueueVal < minimunJob:
+                minimunJob = currentQueueVal
+                bestQueue = queueName
+
 
         # Get the task/np from the last executed file
         for i in range(len(rawData)):
+            currentLine = rawData[i]
+
+            if 'Recommended queue' in currentLine:
+                startIndex, endIndex = currentLine.index('[') + 1, currentLine.index(']')
+                currentQueueInFile = currentLine[startIndex : endIndex]
+
             if ('The tasks/np' in rawData[i]):
                 previousNumberOfNode = rawData[i]
                 break
 
-        # If the array has value
-        if previousNumberOfNode:
-            # Get the number of node
-            begin, end = previousNumberOfNode.index('[') + 1, previousNumberOfNode.index(']')
-            node = previousNumberOfNode[begin: end]
+        # If the best queue from the last recently file not the best queue has the least job waiting time
+        '''
+            recently:
+                iw-shared-6 -> 37 watting
+            newest:
+                joeforce -> 10 waiting
 
-            # Compute the remainNode in server
-            remainNode = numberOfCoreLeft(node)
+            -> joeforce must be the one we need to use
+        '''
 
-            return remainNode >= nodeRequested
-        else:
+        if currentQueueInFile != bestQueue:
             return False
+        else:
+            # If the array has value
+            if previousNumberOfNode:
+                # Get the number of node
+                begin, end = previousNumberOfNode.index('[') + 1, previousNumberOfNode.index(']')
+                node = previousNumberOfNode[begin: end]
+
+                # Compute the remainNode in server
+                remainNode = numberOfCoreLeft(node)
+
+                return remainNode >= nodeRequested
+            else:
+                return False

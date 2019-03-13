@@ -57,6 +57,10 @@ class Analysis(mainClass.Recommender):
 				queues_Data[data[0]] = int(data[6])
 			rawOutput += line + '\n'
 
+		# Sort the number of node waiting by acending order
+		queues_Data = {k: v for k, v in sorted(queues_Data.items(), key=lambda x: x[1])}
+
+		# Compute the best queue with less jobs waiting and less walltime
 		for queue in queues_Data.keys():
 			if self.recommended_queue is None:
 				self.recommended_queue = queue
@@ -68,14 +72,28 @@ class Analysis(mainClass.Recommender):
 					if queues_Data[self.recommended_queue] > queues_Data[queue]:
 						self.recommended_queue = queue
 
-		# ANALYZE THE QUEUE DATA SET OF THE SERVER AND GENERATE LIST OF SERVER NAME
-		serverDetails = da.taskSplitByNodeRequested(self.getUserName(), self.nodeRequested, self.recommended_queue, ssh)
+		# Find server, node, hostname of the recommended queue
+		index, foundServer = 0, False
+		for queue_name in queues_Data.keys():
+			# Assume the second to n is recommender queue if the old recommended queue can not find any server
+			if index > 0:
+				self.recommended_queue = queue_name
 
-		# CONCATENATE THE FINAL RESULT
-		if serverDetails[0] == '':
-			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'There are no server has enough number of node requested as you want!'
-		else:
-			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'The Hostname is: [' + serverDetails[0] + ']' + '\n' + 'The tasks/np is (used/total): [' + serverDetails[1] + ']' + '\n' + 'The number of CPU remain: [' + serverDetails[2] + ']'
+			# Analyze the queue data set of the server and generate list of server name
+			serverDetails = da.taskSplitByNodeRequested(self.getUserName(), self.nodeRequested, self.recommended_queue, ssh)
+
+			# Concatenate the final result
+			if serverDetails[0] == '':
+				index += 1
+				continue
+			else:
+				foundServer = True
+				self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'The Hostname is: [' + serverDetails[0] + ']' + '\n' + 'The tasks/np is (used/total): [' + serverDetails[1] + ']' + '\n' + 'The number of CPU remain: [' + serverDetails[2] + ']'
+				break
+
+		# In case if no server, hostname found
+		if not foundServer:
+			self.recommended_queue = 'The Recommended queue is: [' + self.recommended_queue + ']' + '\n' + 'There are no server have enough number of node requested as you want or all servers have down already!'
 
 		# WRITE THE DATA INTO THE TXT FILE
 		fileName = "QSTAT_Raw_Data/" + str(da.getCurrentDateTime())
