@@ -73,7 +73,7 @@ def getCurrentDateTime():
 # Collect of the total of walltime of each queues
 def collectWallTimeQueue(ssh, sampleQueues):
 
-    walltime = dict()
+    walltime, username = dict(), ''
     pathName = "paceWallTime_Data/" + "Queue_walltime"
 
     # If we already executed the command
@@ -85,6 +85,8 @@ def collectWallTimeQueue(ssh, sampleQueues):
             lines += line
             queue_Node = line.split()
             if (len(queue_Node) != 0):
+                if queue_Node[0] == 'userName':
+                    username = queue_Node[2]
                 if queue_Node[0] in sampleQueues:
                     walltime[queue_Node[0]] = queue_Node[1]
 
@@ -93,6 +95,7 @@ def collectWallTimeQueue(ssh, sampleQueues):
     else:
         # Read the previous data from txt file
         data = lg.readDataFromTxtFile(pathName)
+        _, username = data[3].split("=")
 
         for i in range(len(data) - 4, len(data), 1):
             # Get out the current queue name
@@ -103,7 +106,7 @@ def collectWallTimeQueue(ssh, sampleQueues):
                 currentWallTime = data[i][begin : begin + 20]
                 walltime[currentQueue] = currentWallTime.strip()
 
-    return walltime
+    return [walltime, username.strip()]
 
 
 # Helper method to return the number of core cpu has left in the hostname
