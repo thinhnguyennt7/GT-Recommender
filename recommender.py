@@ -14,33 +14,24 @@ class Analysis(mainClass.Recommender):
 	queues_Data = {}
 	sampleQueues = ['joeforce', 'iw-shared-6', 'joe']
 	recommended_queue, timeRangeCheck = None, 10
+	print("Collecting walltime for each queues...")
 
 	# Connect into Georgia Tech PACE Login
-	def sshClientConnect(self):
-		try:
-			ssh = paramiko.SSHClient()
-			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-			ssh.connect(self.hostname, username=self.username, password=self.password)
-			print("Collecting walltime for each queues...")
+	def checkData(self, ssh, walltime):
 
-			# If the program just executed and the data inside still valid then
-			if (da.justExecuted(self.timeRangeCheck) and da.verifyData(self.nodeRequested)):
-				lines = lg.readDataFromTxtFile("lastExecution/Recently")
-				previousOutput = ''.join(lines)
-				print("----------------------------")
-				print(previousOutput)
+		# If the program just executed and the data inside still valid then
+		if (da.justExecuted(self.timeRangeCheck) and da.verifyData(self.nodeRequested)):
+			lines = lg.readDataFromTxtFile("lastExecution/Recently")
+			previousOutput = ''.join(lines)
+			print("----------------------------")
+			print(previousOutput)
 
-			else:
-				walltime = da.collectWallTimeQueue(ssh, self.sampleQueues)
-				print("----------------------------")
-				print("gathering queue statistic")
-				print("executing qstat ...")
-				print("----------------------------")
-				self.recommendedQueue(self.queues_Data, ssh, walltime)
-
-		except paramiko.AuthenticationException:
-			print ("Wrong credentials.")
-			exit(1)
+		else:
+			print("----------------------------")
+			print("gathering queue statistic")
+			print("executing qstat ...")
+			print("----------------------------")
+			self.recommendedQueue(self.queues_Data, ssh, walltime)
 
 	# Algorithmns to analyze data and compute the best to the worse queue (in order)
 	def recommendedQueue(self, queues_Data, ssh, walltime):
@@ -113,27 +104,24 @@ class Analysis(mainClass.Recommender):
 #### DRIVER ####
 ################
 if __name__ == '__main__':
-	print ("Welcome To Georgia Tech Recommender System...")
-	time.sleep(1)
-	username = input("Please enter your GT username: ")
-	password = getpass.getpass("Please enter your GT password: ")
-
-	# Verify make sure the number of node Requested input correct type
-	while True:
+	# Get out number of node request from the command line
+	numberOfParam = len(sys.argv)
+	if (numberOfParam > 2 or numberOfParam <= 1):
+		print("Please make sure if your command line correct" + "\nExample: python test.py param1" + "\n---------------------------------------------" + "\nParam1: #number_of_node_request")
+	else:
 		try:
-			nodeRequested = int(input("Please entere the number of node request: "))
+			nodeRequested = int(sys.argv[1])
 			if (nodeRequested <= 0):
 				print("The node number request must positive integer")
-				continue
 			elif (nodeRequested > 64):
 				print("The PACE system take up to 64 bits")
-				continue
 		except:
-			print("The node number request must be an integer")
-			continue
-		else:
-			break
+			print("Number of node must be an integer")
+
+	# ssh to run the command line on virtual machine
+	ssh = paramiko.SSHClient()
+	walltime, username = da.collectWallTimeQueue(ssh, ['joeforce', 'iw-shared-6', 'joe'])
 
 	# Instantiate
-	Recommender = Analysis(username, password, nodeRequested)
-	Recommender.sshClientConnect()
+	Recommender = Analysis(nodeRequested, username)
+	Recommender.checkData(ssh, walltime)
