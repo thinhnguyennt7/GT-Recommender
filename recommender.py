@@ -105,7 +105,7 @@ class Analysis(mainClass.Recommender):
 ################
 if __name__ == '__main__':
 	# Get out number of node request from the command line
-	numberOfParam = len(sys.argv)
+	numberOfParam = len(sys.argv) ; status = False
 	if (numberOfParam > 2 or numberOfParam <= 1):
 		print("Please make sure if your command line correct" + "\nExample: python test.py param1" + "\n---------------------------------------------" + "\nParam1: #number_of_node_request")
 	else:
@@ -115,6 +115,8 @@ if __name__ == '__main__':
 				print("The node number request must positive integer")
 			elif (nodeRequested > 64):
 				print("The PACE system take up to 64 bits")
+			else:
+				status = True
 		except:
 			print("Number of node must be an integer")
 
@@ -122,6 +124,7 @@ if __name__ == '__main__':
 	ssh = paramiko.SSHClient()
 	walltime, username = da.collectWallTimeQueue(ssh, ['joeforce', 'iw-shared-6', 'joe'])
 
-	# Instantiate
-	Recommender = Analysis(nodeRequested, username)
-	Recommender.checkData(ssh, walltime)
+	if status:
+		# Instantiate
+		Recommender = Analysis(nodeRequested, username)
+		Recommender.checkData(ssh, walltime)
