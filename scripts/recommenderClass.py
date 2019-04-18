@@ -11,8 +11,9 @@ class Recommender:
 		@param username: Take in GT username
 		@param nodeRequested: Take in numnber of node requested
 	'''
-	def __init__(self, nodeRequested : int, username: str):
+	def __init__(self, nodeRequested : int, username: str, password: str):
 		self.username = username
+		self.password = password
 		self.nodeRequested = nodeRequested
 
 	# Return the full ssh address with username and hostname
