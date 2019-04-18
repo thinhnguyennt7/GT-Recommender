@@ -117,7 +117,7 @@ class Analysis(mainClass.Recommender):
 ################
 if __name__ == '__main__':
 	# Get out number of node request from the command line
-	numberOfParam = len(sys.argv) ; status = False
+	numberOfParam = len(sys.argv)
 	if (numberOfParam > 4 or numberOfParam <= 3):
 		print("Please make sure if your command line correct" + "\nExample: python test.py param1 param2 param3" + "\n---------------------------------------------" + "\nParam1: The GT Username" + "\nParam2: The GT password" + "\nParam3: Number_of_node_request")
 	else:
@@ -129,12 +129,8 @@ if __name__ == '__main__':
 			elif (nodeRequested > 64):
 				print("The PACE system take up to 64 bits")
 			else:
-				status = True
-				# print(username, password, nodeRequested)
+				# Instantiate
+				Recommender = Analysis(nodeRequested, username, password)
+				Recommender.checkData()
 		except:
 			print("Number of node must be an integer")
-
-	if status:
-		# Instantiate
-		Recommender = Analysis(nodeRequested, username, password)
-		Recommender.checkData()
