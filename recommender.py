@@ -16,11 +16,12 @@ class Analysis(mainClass.Recommender):
 	recommended_queue, timeRangeCheck = None, 10
 
 	# Connect into Georgia Tech PACE Login
-	def sshClientConnect(self):
+	def checkData(self):
 		try:
 			ssh = paramiko.SSHClient()
 			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 			ssh.connect(self.hostname, username=self.username, password=self.password)
+
 			print("Collecting walltime for each queues...")
 
 			# If the program just executed and the data inside still valid then
@@ -31,13 +32,15 @@ class Analysis(mainClass.Recommender):
 				print(previousOutput)
 
 			else:
-				walltime = da.collectWallTimeQueue(ssh, self.sampleQueues)
+				# ssh to run the command line on virtual machine
+				walltime, _ = da.collectWallTimeQueue(ssh, self.sampleQueues)
 				print("----------------------------")
 				print("gathering queue statistic")
 				print("executing qstat ...")
 				print("----------------------------")
 				self.recommendedQueue(self.queues_Data, ssh, walltime)
 
+		# If the users infor not correct to connect to PACE
 		except paramiko.AuthenticationException:
 			print ("Wrong credentials.")
 			exit(1)
@@ -113,27 +116,21 @@ class Analysis(mainClass.Recommender):
 #### DRIVER ####
 ################
 if __name__ == '__main__':
-	print ("Welcome To Georgia Tech Recommender System...")
-	time.sleep(1)
-	username = input("Please enter your GT username: ")
-	password = getpass.getpass("Please enter your GT password: ")
-
-	# Verify make sure the number of node Requested input correct type
-	while True:
+	# Get out number of node request from the command line
+	numberOfParam = len(sys.argv)
+	if (numberOfParam > 4 or numberOfParam <= 3):
+		print("Please make sure if your command line correct" + "\nExample: python test.py param1 param2 param3" + "\n---------------------------------------------" + "\nParam1: The GT Username" + "\nParam2: The GT password" + "\nParam3: Number_of_node_request")
+	else:
 		try:
-			nodeRequested = int(input("Please entere the number of node request: "))
+			username, password = sys.argv[1], sys.argv[2]
+			nodeRequested = int(sys.argv[3])
 			if (nodeRequested <= 0):
 				print("The node number request must positive integer")
-				continue
 			elif (nodeRequested > 64):
 				print("The PACE system take up to 64 bits")
-				continue
+			else:
+				# Instantiate
+				Recommender = Analysis(nodeRequested, username, password)
+				Recommender.checkData()
 		except:
-			print("The node number request must be an integer")
-			continue
-		else:
-			break
-
-	# Instantiate
-	Recommender = Analysis(username, password, nodeRequested)
-	Recommender.sshClientConnect()
+			print("Number of node must be an integer")

@@ -9,10 +9,9 @@ class Recommender:
 	'''
 		Default Recommender Constructor
 		@param username: Take in GT username
-		@param password: Take in GT password
 		@param nodeRequested: Take in numnber of node requested
 	'''
-	def __init__(self, username: str, password : str, nodeRequested : int):
+	def __init__(self, nodeRequested : int, username: str, password: str):
 		self.username = username
 		self.password = password
 		self.nodeRequested = nodeRequested
@@ -32,10 +31,6 @@ class Recommender:
 	# Change to the new GT username
 	def setUserName(self, newUserName: str):
 		self.username = newUserName
-
-	# Change to the new GT password
-	def setPassword(self, newPassword: str):
-		self.password = newPassword
 
 	# Change the number of node requested
 	def setNewNodeRequest(self, numberOfNodes: int):
